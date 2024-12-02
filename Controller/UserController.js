@@ -1,4 +1,40 @@
 import prisma from "../DB/db.config.js";
+
+
+//show user
+
+export const showUser = async (req , res) => {
+    const userId = req.params.id;
+    const user = await prisma.user.findFirst({
+        where: {
+            id: Number(userId)
+        },
+    });
+
+    return res.json({ status: 200, data: user });
+}
+
+//fetch user
+export const fetchUsers = async (req , res) => {
+    const user = await prisma.user.findMany({});
+
+    return res.json({status: 200, data: user});
+}
+
+
+//Delete user
+
+export const deleteUser = async (req, res) => {
+    const userId = req.params.id;
+    await prisma.user.delete({
+        where:{
+            id:Number(userId)
+        }
+    })
+    return res.json({status: 200, msg:"User deleted successfully"});
+}
+
+//Create user
 export const createUser = async (req, res) => {
     const { name, email, password } = req.body;
 
