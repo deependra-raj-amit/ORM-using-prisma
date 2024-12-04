@@ -16,7 +16,17 @@ export const showUser = async (req , res) => {
 
 //fetch user
 export const fetchUsers = async (req , res) => {
-    const user = await prisma.user.findMany({});
+    const user = await prisma.user.findMany({
+        select:{
+            name:true,
+            _count:{
+                select:{
+                    post: true,
+                    comment: true,
+                }
+            }
+        }
+    });
 
     return res.json({status: 200, data: user});
 }

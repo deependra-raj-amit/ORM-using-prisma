@@ -1,11 +1,11 @@
 import prisma from "../DB/db.config.js";
 
 
-//show user
+//show comment
 
 export const showComment = async (req , res) => {
     const commentId = req.params.id;
-    const post = await prisma.comment.findFirst({
+    const comment = await prisma.comment.findFirst({
         where: {
             id: Number(commentId)
         },
@@ -14,18 +14,48 @@ export const showComment = async (req , res) => {
     return res.json({ status: 200, data: comment });
 }
 
-//fetch user
+//fetch comments
 export const fetchComments = async (req , res) => {
-    const comments = await prisma.comment.findMany({});
+    const comments = await prisma.comment.findMany({
+        include:{
+            post:{
+                include:{
+                    user:{
+                        select:{
+                            name:true,
+                        }
+                    }
+                }
+            },
+            
+        },
 
-    return res.json({status: 200, data: comment});
+        orderBy:{
+            created_at: "desc",
+        }
+        
+    });
+
+    return res.json({status: 200, data: comments});
 }
 
 
-//Delete user
+//Delete comment
 
 export const deleteComment = async (req, res) => {
     const commentId = req.params.id;
+
+    await prisma.post.update({
+        where:{
+            id: Number(post_id)
+        },
+        data: {
+            comment_count:{
+                decrement:1
+            }
+        }
+    })
+
     await prisma.comment.delete({
         where:{
             id:Number(commentId)
@@ -34,39 +64,52 @@ export const deleteComment = async (req, res) => {
     return res.json({status: 200, msg:"Comment deleted successfully"});
 }
 
-//Create user
+//Create comment
 export const createComment = async (req, res) => {
-    const { user_id, title, description } = req.body;
-    
+    const { user_id, post_id, comment } = req.body;
 
-    const newPost = await prisma.post.create({
-        data:{
-            user_id:Number(user_id),
-            title,
-            description
-        },
-    });
-    return res.json({status:200, data:newPost, msg:"Post Created"});
-
-}
-
-// * Update User
-export const updatePost = async (req, res) => {
-
-    const postId = req.params.id
-    const { user_id, title, description } = req.body;
+    // increase comment counter
 
     await prisma.post.update({
         where:{
-            id:Number(postId)
+            id: Number(post_id)
+        },
+        data: {
+            comment_count:{
+                increment:1
+            }
+        }
+    })
+    
+
+    const newComment = await prisma.comment.create({
+        data:{
+            user_id:Number(user_id),
+            post_id:Number(post_id),
+            comment
+        },
+    });
+    return res.json({status:200, data:newComment, msg:"Comment Posted"});
+
+}
+
+// * Update Comment
+export const updateComment = async (req, res) => {
+
+    const commentId = req.params.id
+    const { user_id, post_id, comment } = req.body;
+
+    await prisma.post.update({
+        where:{
+            id:Number(commentId)
         },
         data:{
             user_id:Number(user_id),
-            title,
-            description
+            post_id:Number(post_id),
+            comment
         }
     });
-    return res.json({status:200 , message:"Post Updated Successfully"})
+    return res.json({status:200 , message:"Comment Updated Successfully"})
 
 
 }
